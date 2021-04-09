@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 const { createPrompt, useState, useKeypress } = require('@inquirer/core/hooks');
 const { usePrefix } = require('@inquirer/core/lib/prefix');
 const { isEnterKey, isBackspaceKey } = require('@inquirer/core/lib/key');
@@ -5,9 +6,16 @@ const chalk = require('chalk');
 
 module.exports = createPrompt((config, done) => {
   const [status, setStatus] = useState('pending');
-  const [defaultValue, setDefaultValue] = useState(config.default);
+  let [defaultValue, setDefaultValue] = useState(config.default);
+
+  const [populate] = useState(config.populate);
+
   const [errorMsg, setError] = useState();
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState(populate ? defaultValue : '');
+
+  if (populate) {
+    defaultValue = undefined;
+  }
 
   const isLoading = status === 'loading';
   const prefix = usePrefix(isLoading);
@@ -27,8 +35,6 @@ module.exports = createPrompt((config, done) => {
         setStatus('done');
         done(answer);
       } else {
-        // TODO: Can we keep the value after validation failure?
-        // `rl.line = value` works but it looses the cursor position.
         setValue('');
         setError(isValid || 'You must provide a valid value');
         setStatus('pending');
